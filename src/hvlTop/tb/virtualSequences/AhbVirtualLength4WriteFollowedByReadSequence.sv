@@ -41,7 +41,7 @@ task AhbVirtualLength4WriteFollowedByReadSequence::body();
 
   foreach(ahbMasterWriteSequence[i]) begin
     if(!ahbMasterWriteSequence[i].randomize() with {
-         hsizeSeq == WORD;
+         hsizeSeq == HALFWORD;
          hwriteSeq == 1; // WRITE
          hmastlockSeq == 0;
          htransSeq == SEQ;
@@ -82,7 +82,7 @@ task AhbVirtualLength4WriteFollowedByReadSequence::body();
   foreach(ahbMasterReadSequence[i]) begin
 
     if(!ahbMasterReadSequence[i].randomize() with {
-         hsizeSeq == WORD;
+         hsizeSeq == HALFWORD;
          hwriteSeq == 0; // READ
          hmastlockSeq == 0;
          htransSeq == SEQ;

@@ -35,6 +35,10 @@ package AhbTestPackage;
   `include "AhbWrap4WriteFollowedByReadTest.sv"
   `include "AhbWrap8WriteFollowedByReadTest.sv"
   `include "AhbWrap16WriteFollowedByReadTest.sv"
+  `include "AhbHmastlockTest.sv"
+  `include "AhbuWriteFollowedByReadTest.sv"
+
+
 endpackage : AhbTestPackage
 
 `endif

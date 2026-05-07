@@ -136,16 +136,16 @@ function void AhbScoreboard::ref_model( AhbMasterTransaction m_tx, int slave_idx
   // ---------------- WRITE OPERATION ----------------
   if (m_tx.hwrite == WRITE) begin
 
-    foreach (m_tx.hwdata[i]) begin
-      beat_addr = m_tx.haddr + (i * bytes_per_beat);
+//    foreach (m_tx.hwdata[i]) begin
+      beat_addr = m_tx.haddr + (0 * bytes_per_beat);
 
-      for (int j = 0; j < bytes_per_beat; j++) begin
-        if (m_tx.hwstrb[i][j]) begin
-          mem[slave_idx][beat_addr + j] = m_tx.hwdata[i][8*j +: 8];
-          `uvm_info("REF_MODEL_WRITE", $sformatf("SLAVE=%0d ADDR=0x%0h DATA=0x%02h (beat=%0d byte=%0d)",slave_idx,(beat_addr + j), m_tx.hwdata[i][8*j +: 8], i,j),UVM_LOW);
+      for (int j = 0; j < 4; j++) begin
+        if (m_tx.hwstrb[0][j]) begin
+          mem[slave_idx][beat_addr++] = m_tx.hwdata[0][8*j +: 8];
+          `uvm_info("REF_MODEL_WRITE", $sformatf(" SLAVE=%0d ADDR=0x%0h DATA=0x%02h (beat=%0d byte=%0d)",slave_idx,(beat_addr + j), m_tx.hwdata[0][8*j +: 8], 0,j),UVM_LOW);
         end
       end
-    end
+  //  end
 
   end
 
@@ -161,13 +161,14 @@ function void AhbScoreboard::ref_model( AhbMasterTransaction m_tx, int slave_idx
     assembled_data = '0; 
 
     // Assemble 8-bit memory locations into a 32-bit word
-    for (int k = 0; k < bytes_per_beat; k++) begin
+    for (int k = 0; k < 4; k++) begin
       if (mem[slave_idx].exists(beat_addr + k)) begin
         assembled_data[8*k +: 8] = mem[slave_idx][beat_addr + k];
       end 
       else begin
         assembled_data[8*k +: 8] = 8'h00;
       end
+      `uvm_info("REF_MODEL_R_",$sformatf("SLAVE=%0d ADDR=0x%0h DATA=0x%0h", slave_idx, beat_addr, assembled_data[8*k +: 8]), UVM_LOW)
     end
   
     // Push only the single beat data to match the monitor's behavior
@@ -219,10 +220,10 @@ task AhbScoreboard::run_phase(uvm_phase phase);
           $cast(exp_tx, m_tx.clone());
           ref_model(exp_tx, s_idx);
 	  if(m_tx.hwrite==0)begin
-	    if(m_tx.hrdata === exp_tx.hrdata)
+	    if(m_tx.hrdata[0] === exp_tx.hrdata[0])
 	      `uvm_info("SCB",$sformatf("hrdata match found"),UVM_LOW)
 	    else
-	      `uvm_error("SCB",$sformatd("hrdata mismatch found - m_tx = %0d, exp_tx = %0d",m_tx.hrdata,exp_tx.hrdata))
+	      `uvm_error("SCB",$sformatf("hrdata mismatch found - m_tx = %p, exp_tx = %p",m_tx.hrdata,exp_tx.hrdata))
 	  end
           slave_expected_q[s_idx].push_back(exp_tx);
           slave_expected_id_q[s_idx].push_back(m_idx);

@@ -34,6 +34,9 @@ package AhbVirtualSequencePackage;
   `include "AhbVirtualWrap4WriteFollowedByReadSequence.sv"
   `include "AhbVirtualWrap8WriteFollowedByReadSequence.sv"  
   `include "AhbVirtualWrap16WriteFollowedByReadSequence.sv"
+  `include "AhbVirtualHmastlockSequence.sv"
+
+  `include "AhbVirtualuWriteFollowedByReadSequence.sv"
 endpackage : AhbVirtualSequencePackage
 
 `endif

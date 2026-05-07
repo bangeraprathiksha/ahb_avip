@@ -1,8 +1,8 @@
-`ifndef AHBVIRTUALLENGTH8WRITEFOLLOWEDBYREADSEQUENCE_INCLUDED_
-`define AHBVIRTUALLENGTH8WRITEFOLLOWEDBYREADSEQUENCE_INCLUDED_
+`ifndef AHBVIRTUALHMASTLOCKSEQUENCE_INCLUDED_
+`define AHBVIRTUALHMASTLOCKSEQUENCE_INCLUDED_
 
-class AhbVirtualLength8WriteFollowedByReadSequence extends AhbVirtualBaseSequence;
-  `uvm_object_utils(AhbVirtualLength8WriteFollowedByReadSequence)
+class AhbVirtualHmastlockSequence extends AhbVirtualBaseSequence;
+  `uvm_object_utils(AhbVirtualHmastlockSequence)
 
   AhbMasterSequence ahbMasterWriteSequence[NO_OF_MASTERS];
   AhbMasterSequence ahbMasterReadSequence[NO_OF_MASTERS];
@@ -15,16 +15,16 @@ class AhbVirtualLength8WriteFollowedByReadSequence extends AhbVirtualBaseSequenc
   AhbVirtualSingleReadSequence ahbVirtualSingleReadSequence;
   AhbVirtualIdleSequence ahbVirtualIdleSequence;
 
-  extern function new(string name ="AhbVirtualLength8WriteFollowedByReadSequence");
+  extern function new(string name ="AhbVirtualHmastlockSequence");
   extern task body();
 
-endclass : AhbVirtualLength8WriteFollowedByReadSequence
+endclass : AhbVirtualHmastlockSequence
 
-function AhbVirtualLength8WriteFollowedByReadSequence::new(string name ="AhbVirtualLength8WriteFollowedByReadSequence");
+function AhbVirtualHmastlockSequence::new(string name ="AhbVirtualHmastlockSequence");
   super.new(name);
 endfunction : new
 
-task AhbVirtualLength8WriteFollowedByReadSequence::body();
+task AhbVirtualHmastlockSequence::body();
   super.body();
 
 
@@ -41,11 +41,11 @@ task AhbVirtualLength8WriteFollowedByReadSequence::body();
 
   foreach(ahbMasterWriteSequence[i]) begin
     if(!ahbMasterWriteSequence[i].randomize() with {
-         hsizeSeq == HALFWORD;
+         hsizeSeq == WORD;
          hwriteSeq == 1; // WRITE
-         hmastlockSeq == 0;
-         htransSeq == SEQ;
-         hburstSeq == INCR8;
+         hmastlockSeq == 1;
+         htransSeq == NONSEQ;
+         hburstSeq == SINGLE;
          foreach(busyControlSeq[k]) busyControlSeq[k] dist {0:=100, 1:=0};
     }) begin
        `uvm_error(get_type_name(), "Randomization failed : Inside Write Sequence")
@@ -82,11 +82,11 @@ task AhbVirtualLength8WriteFollowedByReadSequence::body();
   foreach(ahbMasterReadSequence[i]) begin
 
     if(!ahbMasterReadSequence[i].randomize() with {
-         hsizeSeq == HALFWORD;
+         hsizeSeq == WORD;
          hwriteSeq == 0; // READ
-         hmastlockSeq == 0;
-         htransSeq == SEQ;
-         hburstSeq == INCR8;
+         hmastlockSeq == 1;
+         htransSeq == NONSEQ;
+         hburstSeq == SINGLE;
          foreach(busyControlSeq[k]) busyControlSeq[k] dist {0:=100, 1:=0};
     }) begin
       `uvm_error(get_type_name(), "Randomization failed : Inside Read Sequence")
@@ -117,4 +117,5 @@ task AhbVirtualLength8WriteFollowedByReadSequence::body();
 endtask : body
 
 `endif
+
 

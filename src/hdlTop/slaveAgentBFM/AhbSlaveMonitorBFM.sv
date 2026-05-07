@@ -106,6 +106,8 @@ interface AhbSlaveMonitorBFM (input  bit   hclk,
      prev_htrans  = SlaveMonitorCb.htrans;
      prev_hnonsec = SlaveMonitorCb.hnonsec;
      prev_hprot   = SlaveMonitorCb.hprot;
+ 
+     $display("[%0t] from slave  monitor = haddr=%0d, hwdata = %0h, hrdata = %0h, hwstrb = %p ",$time,prev_haddr,SlaveMonitorCb.hwdata,SlaveMonitorCb.hrdata,SlaveMonitorCb.hwstrb);//debug
 
   endtask : slaveSampleData
 

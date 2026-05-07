@@ -163,10 +163,10 @@ function void AhbMasterSequenceItemConverter::toClass(input ahbTransferCharStruc
   end
 
   foreach(inputConv.hrdata[i])begin
-      if(inputConv.hrdata[i] != 0)begin
+     // if(inputConv.hrdata[i] != 0)begin
           outputConv.hrdata[i] = inputConv.hrdata[i];
          // `uvm_info("AhbMasterSequenceItemConverterClass", $sformatf("After randomizing hrdata = %0p", outputConv.hrdata), UVM_FULL);
-      end
+     // end
   end
 
   foreach(inputConv.busyControl[i])begin

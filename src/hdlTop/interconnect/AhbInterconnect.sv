@@ -15,6 +15,9 @@ interface AhbInterconnect(
   logic [3:0] master_hprot[NO_OF_MASTERS];
   logic master_hmastlock[NO_OF_MASTERS];
   logic [31:0] master_hwdata[NO_OF_MASTERS];
+
+  logic [3:0] master_hwstrb[NO_OF_MASTERS];
+
   logic master_hready[NO_OF_MASTERS];//added
   logic [$clog2(NO_OF_MASTERS)-1:0] current_owner [NO_OF_SLAVES];
   logic [$clog2(NO_OF_MASTERS)-1:0] new_c_owner [NO_OF_SLAVES];
@@ -28,7 +31,6 @@ interface AhbInterconnect(
   logic[$clog2(NO_OF_MASTERS)-1:0]owner[NO_OF_SLAVES];
   logic[$clog2(NO_OF_MASTERS)-1:0]read_owner[NO_OF_SLAVES];
   
-
   typedef struct packed {
     logic [ADDR_WIDTH-1:0] haddr;
     logic [2:0]            hsize;
@@ -49,7 +51,8 @@ interface AhbInterconnect(
 
   addr_phase_t slave_data_phase[NO_OF_SLAVES];
   logic [31:0] slave_hwdata_stable[NO_OF_SLAVES];
-
+  logic[3:0]slave_hwstrb_stable[NO_OF_SLAVES];
+  
   // Round robin arbitration
   logic [$clog2(NO_OF_MASTERS)-1:0] rr_pointer[NO_OF_SLAVES];
   logic [NO_OF_MASTERS-1:0] master_request[NO_OF_SLAVES];
@@ -70,6 +73,7 @@ interface AhbInterconnect(
         master_hprot[m]     = ahbMasterInterface[m].hprot;
         master_hmastlock[m] = ahbMasterInterface[m].hmastlock;
         master_hwdata[m]    = ahbMasterInterface[m].hwdata;
+        master_hwstrb[m]    = ahbMasterInterface[m].hwstrb;
         master_hready[m]    = ahbMasterInterface[m].hready; 
       end
     end
@@ -115,7 +119,7 @@ interface AhbInterconnect(
     for (genvar s = 0; s < NO_OF_SLAVES; s++) begin : request_gen
       for (genvar m = 0; m < NO_OF_MASTERS; m++) begin
         always_comb begin
-          master_request[s][m] = (decode_address(master_haddr[m]) == s)? 1: 'bx;//debug
+          master_request[s][m] = (decode_address(master_haddr[m]) == s)? 1: 'bx;
         end
       end
     end
@@ -220,7 +224,7 @@ interface AhbInterconnect(
               break;
             end
         can_accept = !slave_data_phase[s].valid ||  slave_hreadyout[s];
-
+        $display("check can_accept=%0d slave_data_phase[s].valid = %0d  slave_hreadyout[s]=%0d",can_accept,slave_data_phase[s].valid,slave_hreadyout[s]);//debug
         if(locked_present==1 &&  can_accept==1)
           for (int i = 0; i < NO_OF_MASTERS; i++) begin
             int master_idx;
@@ -234,7 +238,7 @@ interface AhbInterconnect(
           end
 
         else if(can_accept == 1 && master_htrans[current_owner[s]] == 2'b 11)begin
-          $display($time ," 2nd else if block can_accept=%0d htrans=%0d slave_has_owner=%d",can_accept,master_htrans[current_owner[s]],slave_has_owner[s]);//added
+          $display($time ," 2nd else if block can_accept=%0d htrans=%0d slave_has_owner=%d",can_accept,master_htrans[current_owner[s]],slave_has_owner[s]);//debug
           master_grant[s]                   ='0;
           master_grant[s][current_owner[s]] =1;
           slave_data_phase[s].haddr         <= master_haddr[current_owner[s]];
@@ -263,7 +267,6 @@ interface AhbInterconnect(
               master_grant[s][m]               =  1'b1;
               $display($time," 3rd block grant %0d",master_grant[s][m]);//debug
               last_request[s]                  =   m;
-
               slave_data_phase[s].haddr        <=   master_haddr[m];
               $strobe("[%0t] 3rd  slave_data_phase.[%0d].haddr = %0d",$time,s,slave_data_phase[s].haddr);//debug
               slave_data_phase[s].hsize        <=   master_hsize[m];
@@ -275,9 +278,7 @@ interface AhbInterconnect(
               slave_data_phase[s].target_slave <=   s;
               slave_data_phase[s].master_id    <=   m;
               slave_data_phase[s].valid        <=   1'b1;
-
               break;
-
             end
             else
               slave_data_phase[s].haddr <= 'bx;
@@ -352,18 +353,12 @@ interface AhbInterconnect(
         ahbSlaveInterface[s].hready = 0;
         for(int i=0;i<NO_OF_MASTERS;i++) begin
           if (current_owner[s]==i)begin        
-            //ahbSlaveInterface[s].hready = master_hready[i]; //added
             ahbSlaveInterface[s].hready = slave_hreadyout[s];
-            //break;
           end
           if(master_grant[s][i]==1) begin
-            ahbSlaveInterface[s].hready = master_hready[i]; //added
-            //ahbSlaveInterface[s].hready =1'b1;
+            ahbSlaveInterface[s].hready = master_hready[i]; 
             break;
           end
-          //else begin
-            //ahbSlaveInterface[s].hready =0;
-          //end
         end
       end
     end
@@ -377,12 +372,8 @@ interface AhbInterconnect(
           if( m == read_owner[s])begin
             ahbMasterInterface[m].hrdata = slave_hrdata[s];
 	    $display(" time = %0t, master = %0d, slave = %0d,  read_owner = %0d",$time,m,s,read_owner[s]);//debug
-            //add                                                                                                                                                                
             break;
           end
-          //else begin
-            //ahbSlaveInterface[m].hready =0;
-          //end
       end
     end
   endgenerate
@@ -394,8 +385,6 @@ interface AhbInterconnect(
 
       always_comb begin
         if (!hresetn) begin
-          //slave_data_phase[s]    <=  '0;
-          //slave_hwdata_stable[s] <=  '0;
           new_data_phase_starting  <=  1'b0;
         end 
         else begin
@@ -406,7 +395,8 @@ interface AhbInterconnect(
               if (master_grant[s][m] == 1) begin
                 //slave_hwdata_stable[s]         =  master_hwdata[current_owner[s]];
                 slave_hwdata_stable[s]           =  master_hwdata[new_c_owner[s]];
-                $display("[%0t] slave_hwdata_stable[%0d] = %0h",$time,s,slave_hwdata_stable[s]);//debug
+                slave_hwstrb_stable[s]           =  master_hwstrb[new_c_owner[s]];
+                $display("[%0t] slave_hwdata_stable[%0d] = %0h, slave_hwstrb_stable[%0d] = %0d",$time,s,slave_hwdata_stable[s],s,slave_hwstrb_stable[s]);//debug
                 break;
               end
             end
@@ -423,9 +413,10 @@ interface AhbInterconnect(
     for (genvar s = 0; s < NO_OF_SLAVES; s++) begin : slave_interface
       always_comb begin
         ahbSlaveInterface[s].hwdata     =  slave_hwdata_stable[s];
+        ahbSlaveInterface[s].hwstrb     =  slave_hwstrb_stable[s];
         $display(" 1st hwdata = %0h",ahbSlaveInterface[s].hwdata);//debug
         ahbSlaveInterface[s].haddr      =  slave_data_phase[s].haddr;
-	$display("[%0t] ahbSlaveInterface[%0d].haddr = %0d",$time,s,ahbSlaveInterface[s].haddr);//debug
+	$display("[%0t] my_hwdata = %0h ahbSlaveInterface[%0d].haddr = %0d",$time,ahbSlaveInterface[s].hwdata,s,ahbSlaveInterface[s].haddr);//debug
         ahbSlaveInterface[s].hsize      =  slave_data_phase[s].hsize;
         ahbSlaveInterface[s].htrans     =  slave_data_phase[s].htrans;
         ahbSlaveInterface[s].hwrite     =  slave_data_phase[s].hwrite;

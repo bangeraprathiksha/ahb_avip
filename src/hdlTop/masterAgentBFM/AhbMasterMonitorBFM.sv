@@ -77,7 +77,6 @@ interface AhbMasterMonitorBFM(input  bit   hclk,
      ahbDataPacket.hnonsec = prev_hnonsec;
      ahbDataPacket.hprot   = ahbProtectionEnum'(prev_hprot);
 
-     //if (prev_hselx === 1'b0) begin
      if (prev_hselx === 1'b0 || $isunknown(prev_haddr)) begin
        ahbDataPacket.htrans = ahbTransferEnum'(0);
      end 
@@ -106,7 +105,7 @@ interface AhbMasterMonitorBFM(input  bit   hclk,
      prev_hnonsec = SlaveMonitorCb.hnonsec;
      prev_hprot   = SlaveMonitorCb.hprot;
 
-     $display("[%0t] from master monitor = haddr=%0d",$time,prev_haddr);//debug
+     $display("[%0t] from master monitor = haddr=%0d, hwdata = %0h, hrdata = %0h, hwstrb=%p ",$time,prev_haddr,SlaveMonitorCb.hwdata,SlaveMonitorCb.hrdata,SlaveMonitorCb.hwstrb);//debug
 
   endtask : sampleData
 

@@ -33,7 +33,7 @@ task AhbVirtualSingleWriteSequence::body();
 							      hwriteSeq ==1;
     							      hmastlockSeq == 0;
                                                               htransSeq == SEQ;
-                                                              hburstSeq == INCR4;
+                                                              hburstSeq == SINGLE;
 						              foreach(busyControlSeq[j]) busyControlSeq[j] dist {0:=100, 1:=0};}
  
                                                         ) begin

@@ -70,7 +70,9 @@ interface AhbSlaveDriverBFM(input  bit   hclk,
     bit[1:0] readhtransTemp;
     bit [31:0]readAddress;
     bit[31:0]dataTemp;
-   
+    int num_bytes;  
+
+ 
     do begin 
       @(SlaveDriverCb);
       //SlaveDriverCb.hreadyout <= 0;
@@ -100,7 +102,7 @@ interface AhbSlaveDriverBFM(input  bit   hclk,
 	 $display("[%0t] readAddress = %0d, SlaveDriverCb.haddr = %0d",$time,readAddress,SlaveDriverCb.haddr);//debug
     end
  
-       if(configPacket.needWaitStates) begin
+    if(configPacket.needWaitStates) begin
         SlaveDriverCb.hreadyout <=  0;
         repeat(configPacket.noOfWaitStates)@(SlaveDriverCb);
         SlaveDriverCb.hreadyout <=  1;
@@ -117,7 +119,7 @@ interface AhbSlaveDriverBFM(input  bit   hclk,
     //dataPacket.hready         <=  hready;  
     //pipWrite                  <=  SlaveDriverCb.hwrite;
       
-    if(pipWrite && htransTemp!=2'b00 ) begin
+  /*  if(pipWrite && htransTemp!=2'b00 ) begin
       $display("%0t NEW DATA TO BE WRITTEN IS %0h at address  = %0d slave id=%0d",$time,dataTemp,addressTemp,slave_id);//debug
       for(int i=0;i<4;i++) begin 
         normalReg[(addressTemp)+i] = dataTemp[(8*i) +: 8];
@@ -137,9 +139,34 @@ interface AhbSlaveDriverBFM(input  bit   hclk,
 	SlaveDriverCb.hrdata    <=  '0;
         $display(" NEW DATA READ IS %0h from haddr= %0d slave id=%0d \n \n %0t",temp,haddr,slave_id,$time);//debug
     end
+  */
+
+    if (pipWrite && htransTemp != 2'b00) begin
+      num_bytes = 1 << hsize;
+      $display("%0t WRITE: data=%0h addr=%0d size=%0d bytes slave=%0d",  $time, dataTemp, addressTemp, num_bytes, slave_id);//debug
+      for (int i = 0; i < 4; i++) begin
+        if(SlaveDriverCb.hwstrb[i] == 1)begin
+          normalReg[addressTemp++] = dataTemp[(8*i) +: 8];
+          $display("%0t normalReg[%0d] = %0h,   hwstrb= %0d", $time, addressTemp + i, normalReg[addressTemp + i],SlaveDriverCb.hwstrb);//debug
+        end
+      end
+    end
+    if (SlaveDriverCb.hwrite == 0) begin
+      temp = '0;  
+      $display("%0t READ: addr=%0d size=%0d bytes slave=%0d", $time, readAddress, num_bytes, slave_id);//debug
+      for (int i = 0; i < 4; i++) begin
+        temp[(8*i) +: 8] = normalReg[readAddress + i];
+        $display("%0t temp[%0d byte] = %0h from normalReg[%0d]",$time, i, normalReg[readAddress + i], readAddress + i);//debug
+      end
+      SlaveDriverCb.hrdata <= temp;
+      $display("%0t FINAL READ DATA = %0h from addr=%0d slave=%0d", $time, temp, readAddress, slave_id);//debug
+    end
+  
     $display($time ,"old one done %0d ",slave_id);//debug
-  endtask: slaveDriveSingleTransfer
- 
+
+  endtask: slaveDriveSingleTransfer 
+
+/* 
   task slavedriveBurstTransfer(inout ahbTransferCharStruct dataPacket,input ahbTransferConfigStruct configPacket);
 
     int burst_length;
@@ -195,6 +222,6 @@ interface AhbSlaveDriverBFM(input  bit   hclk,
     //hreadyout                 <=  1;
     `uvm_info(name, "Bus is now out of wait cycles", UVM_LOW);
   endtask: waitCycles
- 
+ */
 endinterface
 `endif

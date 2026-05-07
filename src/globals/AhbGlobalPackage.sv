@@ -116,7 +116,6 @@ package AhbGlobalPackage;
     logic [ADDR_WIDTH-1:0] haddr;   // Address of the transfer
     bit [ADDR_WIDTH-1:0]minimumAddress;
     bit [ADDR_WIDTH-1:0]maximumAddress; 
-    // int slave_id;
     int noOfWaitStates;
     bit needWaitStates;
     bit[3:0]undefinedBurstLength;
