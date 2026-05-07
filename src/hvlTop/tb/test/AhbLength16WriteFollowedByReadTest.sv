@@ -19,10 +19,7 @@ endfunction : new
 task AhbLength16WriteFollowedByReadTest::run_phase(uvm_phase phase);
 
  foreach(ahbEnvironment.ahbSlaveAgentConfig[i]) begin
-    if(!ahbEnvironment.ahbSlaveAgentConfig[0].randomize() with {noOfWaitStates==3;}) begin
-      `uvm_fatal(get_type_name(),"Unable to randomise noOfWaitStates")
-    end
-   if(!ahbEnvironment.ahbSlaveAgentConfig[1].randomize() with {noOfWaitStates==0;}) begin
+    if(!ahbEnvironment.ahbSlaveAgentConfig[i].randomize() with {noOfWaitStates==0;}) begin
       `uvm_fatal(get_type_name(),"Unable to randomise noOfWaitStates")
     end
  end

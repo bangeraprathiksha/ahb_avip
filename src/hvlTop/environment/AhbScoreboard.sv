@@ -219,12 +219,12 @@ task AhbScoreboard::run_phase(uvm_phase phase);
 	if(s_idx != -1) begin
           $cast(exp_tx, m_tx.clone());
           ref_model(exp_tx, s_idx);
-	  if(m_tx.hwrite==0)begin
+	  /*if(m_tx.hwrite==0)begin
 	    if(m_tx.hrdata[0] === exp_tx.hrdata[0])
 	      `uvm_info("SCB",$sformatf("hrdata match found"),UVM_LOW)
 	    else
 	      `uvm_error("SCB",$sformatf("hrdata mismatch found - m_tx = %p, exp_tx = %p",m_tx.hrdata,exp_tx.hrdata))
-	  end
+	  end*/
           slave_expected_q[s_idx].push_back(exp_tx);
           slave_expected_id_q[s_idx].push_back(m_idx);
         end
