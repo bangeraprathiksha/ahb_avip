@@ -237,7 +237,7 @@ interface AhbInterconnect(
             end
           end
 
-        else if(can_accept == 1 && master_htrans[current_owner[s]] == 2'b 11)begin
+        else if(can_accept == 1 && master_htrans[current_owner[s]] == 2'b 11 && master_request[s][current_owner[s]] == 1 )begin
           $display($time ," 2nd else if block can_accept=%0d htrans=%0d slave_has_owner=%d",can_accept,master_htrans[current_owner[s]],slave_has_owner[s]);//debug
           master_grant[s]                   ='0;
           master_grant[s][current_owner[s]] =1;
