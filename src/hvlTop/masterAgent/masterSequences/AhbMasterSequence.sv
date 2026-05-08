@@ -25,11 +25,11 @@ class AhbMasterSequence extends AhbMasterBaseSequence;
   rand bit busyControlSeq[];
    
   // Constraint to ensure we generate exactly 4 addresses (for the 4 writes/reads)
-  constraint c_list_size { haddr_list.size() == 8; }
+  constraint c_list_size { haddr_list.size() == 4; }
 
   // Apply address range constraints to every element in the list
   constraint addr_range_list { 
-    foreach (haddr_list[i]) { soft haddr_list[i] inside {[0:2000]};
+    foreach (haddr_list[i]) { soft haddr_list[i] inside {[0:1000]};
     }
   }
 

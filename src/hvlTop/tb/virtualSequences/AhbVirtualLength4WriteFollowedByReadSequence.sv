@@ -38,19 +38,41 @@ task AhbVirtualLength4WriteFollowedByReadSequence::body();
     ahbSlaveReadSequence[i]  = AhbSlaveSequence::type_id::create($sformatf("ahbSlaveReadSequence[%0d]", i));
   end
 
-
+/*
   foreach(ahbMasterWriteSequence[i]) begin
     if(!ahbMasterWriteSequence[i].randomize() with {
-         hsizeSeq == HALFWORD;
+         hsizeSeq == BYTE;
          hwriteSeq == 1; // WRITE
          hmastlockSeq == 0;
          htransSeq == SEQ;
-         hburstSeq == INCR16;
+         hburstSeq == INCR4;
          foreach(busyControlSeq[k]) busyControlSeq[k] dist {0:=100, 1:=0};
     }) begin
        `uvm_error(get_type_name(), "Randomization failed : Inside Write Sequence")
     end
   end
+*/
+if(!ahbMasterWriteSequence[1].randomize() with {
+         hsizeSeq == WORD;
+         hwriteSeq == 1; // WRITE
+         hmastlockSeq == 1;
+         htransSeq == SEQ;
+         hburstSeq == INCR4;
+         foreach(busyControlSeq[k]) busyControlSeq[k] dist {0:=100, 1:=0};
+    }) begin
+       `uvm_error(get_type_name(), "Randomization failed : Inside Write Sequence")
+    end
+
+if(!ahbMasterWriteSequence[0].randomize() with {
+         hsizeSeq == WORD;
+         hwriteSeq == 1; // WRITE
+         hmastlockSeq == 1;
+         htransSeq == SEQ;
+         hburstSeq == INCR4;
+         foreach(busyControlSeq[k]) busyControlSeq[k] dist {0:=100, 1:=0};
+    }) begin
+       `uvm_error(get_type_name(), "Randomization failed : Inside Write Sequence")
+    end
 
 
 
@@ -79,25 +101,50 @@ task AhbVirtualLength4WriteFollowedByReadSequence::body();
   join
 
 
-  foreach(ahbMasterReadSequence[i]) begin
+ /* foreach(ahbMasterReadSequence[i]) begin
 
     if(!ahbMasterReadSequence[i].randomize() with {
-         hsizeSeq == HALFWORD;
+         hsizeSeq == BYTE;
          hwriteSeq == 0; // READ
          hmastlockSeq == 0;
          htransSeq == SEQ;
-         hburstSeq == INCR16;
+         hburstSeq == INCR4;
          foreach(busyControlSeq[k]) busyControlSeq[k] dist {0:=100, 1:=0};
     }) begin
       `uvm_error(get_type_name(), "Randomization failed : Inside Read Sequence")
     end
 
-
-
-
-    ahbMasterReadSequence[i].haddr_list = ahbMasterWriteSequence[i].haddr_list;
+ ahbMasterReadSequence[i].haddr_list = ahbMasterWriteSequence[i].haddr_list; 
   end
+*/
 
+if(!ahbMasterReadSequence[1].randomize() with {
+         hsizeSeq == WORD;
+         hwriteSeq == 0; // READ
+         hmastlockSeq == 1;
+         htransSeq == SEQ;
+         hburstSeq == INCR4;
+         foreach(busyControlSeq[k]) busyControlSeq[k] dist {0:=100, 1:=0};
+    }) begin
+      `uvm_error(get_type_name(), "Randomization failed : Inside Read Sequence")
+    end
+
+    //ahbMasterReadSequence[i].haddr_list = ahbMasterWriteSequence[i].haddr_list;
+if(!ahbMasterReadSequence[0].randomize() with {
+         hsizeSeq == WORD;
+         hwriteSeq == 0; // READ
+         hmastlockSeq == 1;
+         htransSeq == SEQ;
+         hburstSeq == INCR4;
+         foreach(busyControlSeq[k]) busyControlSeq[k] dist {0:=100, 1:=0};
+    }) begin
+      `uvm_error(get_type_name(), "Randomization failed : Inside Read Sequence")
+    end
+
+   foreach(ahbMasterReadSequence[i]) begin
+      ahbMasterReadSequence[i].haddr_list = ahbMasterWriteSequence[i].haddr_list;
+   end
+//till here
   fork
     // Start Slave Sequences (Reactive)
 

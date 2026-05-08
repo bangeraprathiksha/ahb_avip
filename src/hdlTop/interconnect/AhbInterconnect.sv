@@ -217,26 +217,52 @@ interface AhbInterconnect(
         logic can_accept;
         logic locked_present;
         master_grant[s] = 'x;
-        for(int i=0;i<NO_OF_MASTERS;i++)
-          if(master_request[s][i])
+        locked_present = 0;
+        for(int i=0;i<NO_OF_MASTERS;i++)begin
+	  $display("[%0t] master_request[%0d][%0d] = %0d , master_hmastlock[%0d] == %0d",$time, s,i,master_request[s][i], i,master_hmastlock[i]);
+          if(master_request[s][i])begin
             if(master_hmastlock[i]==1) begin
               locked_present=1;
               break;
             end
-        can_accept = !slave_data_phase[s].valid ||  slave_hreadyout[s];
-        $display("check can_accept=%0d slave_data_phase[s].valid = %0d  slave_hreadyout[s]=%0d",can_accept,slave_data_phase[s].valid,slave_hreadyout[s]);//debug
-        if(locked_present==1 &&  can_accept==1)
-          for (int i = 0; i < NO_OF_MASTERS; i++) begin
-            int master_idx;
-            master_idx = (rr_pointer[s] + i) % NO_OF_MASTERS;
+          end
+        end
+        can_accept =  slave_hreadyout[s];
+        $display("check locked_present = %0d , can_accept=%0d slave_data_phase[s].valid = %0d  slave_hreadyout[s]=%0d",locked_present,can_accept,slave_data_phase[s].valid,slave_hreadyout[s]);//debug
+        if(locked_present==1 &&  can_accept==1)begin 
+	  integer master_idx;
+          master_idx = 'bx;
+	  if(master_htrans[current_owner[s]] == 2'b11 && master_request[s][current_owner[s]] == 1)begin
+		master_idx = current_owner[s];
+	  end
+	  else begin
+	    for (int i = 0; i < NO_OF_MASTERS; i++) begin 
+   	      master_idx = (rr_pointer[s] + i) % NO_OF_MASTERS;
+	      if (master_request[s][master_idx] && master_hmastlock[master_idx]==1) begin
+	        break;
+	      end
+	      
+            end
+          end 
             if (master_request[s][master_idx] && master_hmastlock[master_idx]==1) begin
               $display($time," 1st if block master_request[%0d][%0d] masterlock=%0d",s,master_idx,master_idx);//debug
               master_grant[s][master_idx] = 1'b1;
-              $display($time," 1st block grant %0d",master_grant[s][master_idx]);//debug
-              break;
-            end
-          end
+              slave_data_phase[s].haddr        <=   master_haddr[master_idx];
+              slave_data_phase[s].hsize        <=   master_hsize[master_idx];
+              slave_data_phase[s].htrans       <=   master_htrans[master_idx];
+              slave_data_phase[s].hwrite       <=   master_hwrite[master_idx];
+              slave_data_phase[s].hburst       <=   master_hburst[master_idx];
+              slave_data_phase[s].hprot        <=   master_hprot[master_idx];
+              slave_data_phase[s].hmastlock    <=   master_hmastlock[master_idx];
+              slave_data_phase[s].target_slave <=   s;
+              slave_data_phase[s].master_id    <=   master_idx;
+              slave_data_phase[s].valid        <=   1'b1;
 
+              $display($time," 1st block grant %0d",master_grant[s][master_idx]);//debug
+              
+           
+            end
+         end 
         else if(can_accept == 1 && master_htrans[current_owner[s]] == 2'b 11 && master_request[s][current_owner[s]] == 1 )begin
           $display($time ," 2nd else if block can_accept=%0d htrans=%0d slave_has_owner=%d",can_accept,master_htrans[current_owner[s]],slave_has_owner[s]);//debug
           master_grant[s]                   ='0;
