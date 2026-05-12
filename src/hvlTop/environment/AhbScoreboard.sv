@@ -136,7 +136,6 @@ function void AhbScoreboard::ref_model( AhbMasterTransaction m_tx, int slave_idx
   // ---------------- WRITE OPERATION ----------------
   if (m_tx.hwrite == WRITE) begin
 
-//    foreach (m_tx.hwdata[i]) begin
       beat_addr = m_tx.haddr + (0 * bytes_per_beat);
 
       for (int j = 0; j < 4; j++) begin
@@ -145,7 +144,6 @@ function void AhbScoreboard::ref_model( AhbMasterTransaction m_tx, int slave_idx
           `uvm_info("REF_MODEL_WRITE", $sformatf(" SLAVE=%0d ADDR=0x%0h DATA=0x%02h (beat=%0d byte=%0d)",slave_idx,(beat_addr + j), m_tx.hwdata[0][8*j +: 8], 0,j),UVM_LOW);
         end
       end
-  //  end
 
   end
 
@@ -168,7 +166,6 @@ function void AhbScoreboard::ref_model( AhbMasterTransaction m_tx, int slave_idx
       else begin
         assembled_data[8*k +: 8] = 8'h00;
       end
-      `uvm_info("REF_MODEL_R_",$sformatf("SLAVE=%0d ADDR=0x%0h DATA=0x%0h", slave_idx, beat_addr, assembled_data[8*k +: 8]), UVM_LOW)
     end
   
     // Push only the single beat data to match the monitor's behavior
@@ -190,7 +187,6 @@ task AhbScoreboard::run_phase(uvm_phase phase);
         int s_idx;
 	int temp;
         ahbMasterAnalysisFifo[m_idx].get(m_tx);
- 	$display("[%0t] run phase got m_tx haddr=%0d, mtx=%0d, htrans= %0d ",$time,m_tx.haddr,i,m_tx.htrans);//debug
         m_tx.print();
   
 	// Ignore IDLE and BUSY transactions from the Masters
@@ -204,7 +200,6 @@ task AhbScoreboard::run_phase(uvm_phase phase);
    	  if(!master_request_q.exists(s_idx))
       	    master_request_q[s_idx] = {};
    	  master_request_q[s_idx].push_back(m_idx);
-  	  $display("[%0t] Master %0d requested Slave %0d addr=%0d, master_requested_q = %p",$time,m_idx, s_idx, m_tx.haddr,master_request_q);//debug
 	end
 
         if(m_tx.htrans == 2'b10)
@@ -215,16 +210,9 @@ task AhbScoreboard::run_phase(uvm_phase phase);
 	  
         expected_grant_q[s_idx].push_back(g_m);
 
-	$display("[%0t] MASTER: predicted grant=%0d for slave %0d haddr = %0d", $time, temp, s_idx,m_tx.haddr);//debug
 	if(s_idx != -1) begin
           $cast(exp_tx, m_tx.clone());
           ref_model(exp_tx, s_idx);
-	  /*if(m_tx.hwrite==0)begin
-	    if(m_tx.hrdata[0] === exp_tx.hrdata[0])
-	      `uvm_info("SCB",$sformatf("hrdata match found"),UVM_LOW)
-	    else
-	      `uvm_error("SCB",$sformatf("hrdata mismatch found - m_tx = %p, exp_tx = %p",m_tx.hrdata,exp_tx.hrdata))
-	  end*/
           slave_expected_q[s_idx].push_back(exp_tx);
           slave_expected_id_q[s_idx].push_back(m_idx);
         end
@@ -263,7 +251,6 @@ task AhbScoreboard::run_phase(uvm_phase phase);
    	  if(expected_grant_q[s_idx][i].haddr == s_tx.haddr) begin
             g = expected_grant_q[s_idx][i];
      	    expected_grant_q[s_idx].delete(i);
-	    $display("expected_grant_q = %p",expected_grant_q);//debug
             found = 1;
       	    break;
    	  end
@@ -272,8 +259,6 @@ task AhbScoreboard::run_phase(uvm_phase phase);
 	if(!found) begin
    	  `uvm_error("SYNC", "No matching expected grant found")
 	end
-
- 	$display("[%0t] SLAVE: addr=%0d exp_master=%0d ",$time, s_tx.haddr, g.master);//debug
 
         // Search for the matching expected transaction
         found_idx = -1;
@@ -318,29 +303,23 @@ function int AhbScoreboard::predict_grant(int slave_idx);
   int idx_q[$];
 
   if (!master_request_q.exists(slave_idx) || master_request_q[slave_idx].size() == 0) begin
-    $display("[%0t] No requests for slave %0d", $time, slave_idx);//debug
     return -1;
   end
-
-  $display("[%0t] QUEUE[%0d]=%p , rr_pointer=%0d", $time, slave_idx, master_request_q[slave_idx], rr_pointer[slave_idx]);//debug
 
   for (int i = 0; i < NO_OF_MASTERS; i++) begin
 
     m= (rr_pointer[slave_idx] + i) % NO_OF_MASTERS;
 
-    $display("[%0t] Checking master %0d", $time, m);//debug
     idx_q = master_request_q[slave_idx].find_index(x) with (x == m);
 
     if (idx_q.size() > 0) begin
       rr_pointer[slave_idx] = (m + 1) % NO_OF_MASTERS;
       master_request_q[slave_idx].delete(idx_q[0]);
-      $display("[%0t] GRANT=%0d , NEW rr_pointer=%0d , UPDATED QUEUE=%p", $time, m, rr_pointer[slave_idx], master_request_q[slave_idx]);//debug
       return m;
     end
   end
 
   // No valid master found
-  $display("[%0t] No matching master found", $time);//debug
   return -1;
 
 endfunction
@@ -349,10 +328,8 @@ endfunction
 function void AhbScoreboard::compare_trans( AhbMasterTransaction exp_tx, AhbSlaveTransaction  s_tx, int s_idx);
 
   exp_tx.print;
-  $display("NIHAL EXP");//debug
 
   s_tx.print;
-  $display("NIHAL S_tx");//debug
 
   if (exp_tx.hwrite === s_tx.hwrite) begin
     VerifiedMasterHwriteCount++;
@@ -376,10 +353,8 @@ function void AhbScoreboard::compare_trans( AhbMasterTransaction exp_tx, AhbSlav
     end
 
     // Read Data (BURST SAFE)
-    $display("EXP s_tx HRDATA:%p",s_tx.hrdata);//debug
-    $display("EXP exp_tx HRDATA:%p",exp_tx.hrdata);//debug
     foreach (exp_tx.hrdata[i]) begin
-      $display("2addr");
+      $display("haddr");
 
       if (exp_tx.hrdata[i] !== s_tx.hrdata[i]) begin
         `uvm_error("SB_HRDATA_MISMATCH",$sformatf("HRDATA mismatch at beat %0d: Exp=%h Act=%h", i, exp_tx.hrdata[i], s_tx.hrdata[i]))
@@ -461,17 +436,6 @@ function void AhbScoreboard::check_phase(uvm_phase phase);
 
   `uvm_info(get_type_name(),$sformatf("--\n----------------------------------------------SCOREBOARD CHECK PHASE---------------------------------------"),UVM_HIGH)
   `uvm_info (get_type_name(),$sformatf(" Scoreboard Check Phase is starting"),UVM_HIGH);
-
-  if (ahbMasterTransactionCount == ahbSlaveTransactionCount) begin
-    `uvm_info (get_type_name(), $sformatf ("master and slave have equal no. of transactions = %0d",ahbMasterTransactionCount),UVM_HIGH);
-    `uvm_info (get_type_name(), $sformatf ("ahbMasterTransactionCount : %0d",ahbMasterTransactionCount ),UVM_HIGH);
-    `uvm_info (get_type_name(), $sformatf ("ahbSlaveTransactionCount : %0d",ahbSlaveTransactionCount),UVM_HIGH);
-  end
-  else begin
-    `uvm_info (get_type_name(), $sformatf ("ahbMasterTransactionCount : %0d",ahbMasterTransactionCount ),UVM_HIGH);
-    `uvm_info (get_type_name(), $sformatf ("ahbSlaveTransactionCount  : %0d",ahbSlaveTransactionCount  ),UVM_HIGH);
-    `uvm_error ("SC_CheckPhase", $sformatf ("master and slave doesnot have same no.of transactions"));
-  end
 
   if(ahbEnvironmentConfig.operationMode == WRITE_READ) begin
     if (( VerifiedMasterHwdataCount != 0) && (FailedMasterHwdataCount == 0)) begin

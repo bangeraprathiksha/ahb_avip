@@ -34,7 +34,7 @@ interface AhbMasterMonitorBFM(input  bit   hclk,
 
   string name = "AHB_MASTER_MONITOR_BFM"; 
 
-  clocking SlaveMonitorCb @(posedge hclk);
+  clocking DriverMonitorCb @(posedge hclk);
    default input #1step output #1step;
    input hselx,haddr,hburst,hmastlock,hprot,hsize,hnonsec,hexcl,hmaster,htrans,hwdata,hwstrb,hwrite,hrdata,hreadyout,hresp,hexokay,hready;
   endclocking
@@ -63,14 +63,13 @@ interface AhbMasterMonitorBFM(input  bit   hclk,
      static logic                    prev_hnonsec = 0;
      static logic [HPROT_WIDTH-1:0]  prev_hprot = 0;
 
-     @(SlaveMonitorCb);
-     while(SlaveMonitorCb.hready !== 1'b1 && SlaveMonitorCb.htrans !== 2'b00) begin
-       @(SlaveMonitorCb);
+     @(DriverMonitorCb);
+     while(DriverMonitorCb.hready !== 1'b1 && DriverMonitorCb.htrans !== 2'b00) begin
+       @(DriverMonitorCb);
      end
 
      ahbDataPacket.hselx   = prev_hselx;
      ahbDataPacket.haddr   = prev_haddr;
-     $display("ishika %0t haddr = %0h",$time,ahbDataPacket.haddr);//debug
      ahbDataPacket.hburst  = ahbBurstEnum'(prev_hburst);
      ahbDataPacket.hwrite  = ahbOperationEnum'(prev_hwrite);
      ahbDataPacket.hsize   = ahbHsizeEnum'(prev_hsize);
@@ -84,28 +83,27 @@ interface AhbMasterMonitorBFM(input  bit   hclk,
        ahbDataPacket.htrans = ahbTransferEnum'(prev_htrans);
      end
 
-     ahbDataPacket.hresp     = ahbRespEnum'(SlaveMonitorCb.hresp);
-     ahbDataPacket.hreadyout = SlaveMonitorCb.hreadyout;
+     ahbDataPacket.hresp     = ahbRespEnum'(DriverMonitorCb.hresp);
+     ahbDataPacket.hreadyout = DriverMonitorCb.hreadyout;
 
      if(prev_hwrite) begin
-       ahbDataPacket.hwdata = SlaveMonitorCb.hwdata;
-       ahbDataPacket.hwstrb = SlaveMonitorCb.hwstrb;
+       ahbDataPacket.hwdata = DriverMonitorCb.hwdata;
+       ahbDataPacket.hwstrb = DriverMonitorCb.hwstrb;
      end
      else begin
-       ahbDataPacket.hrdata = SlaveMonitorCb.hrdata;
+       ahbDataPacket.hrdata = DriverMonitorCb.hrdata;
      end
 
      // Save the current address phase signals for the next cycle's data phase
-     prev_hselx   = SlaveMonitorCb.hselx;
-     prev_haddr   = SlaveMonitorCb.haddr;
-     prev_hburst  = SlaveMonitorCb.hburst;
-     prev_hwrite  = SlaveMonitorCb.hwrite;
-     prev_hsize   = SlaveMonitorCb.hsize;
-     prev_htrans  = SlaveMonitorCb.htrans;
-     prev_hnonsec = SlaveMonitorCb.hnonsec;
-     prev_hprot   = SlaveMonitorCb.hprot;
+     prev_hselx   = DriverMonitorCb.hselx;
+     prev_haddr   = DriverMonitorCb.haddr;
+     prev_hburst  = DriverMonitorCb.hburst;
+     prev_hwrite  = DriverMonitorCb.hwrite;
+     prev_hsize   = DriverMonitorCb.hsize;
+     prev_htrans  = DriverMonitorCb.htrans;
+     prev_hnonsec = DriverMonitorCb.hnonsec;
+     prev_hprot   = DriverMonitorCb.hprot;
 
-     $display("[%0t] from master monitor = haddr=%0d, hwdata = %0h, hrdata = %0h, hwstrb=%p ",$time,prev_haddr,SlaveMonitorCb.hwdata,SlaveMonitorCb.hrdata,SlaveMonitorCb.hwstrb);//debug
 
   endtask : sampleData
 

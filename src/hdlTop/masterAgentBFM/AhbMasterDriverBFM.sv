@@ -21,7 +21,6 @@ interface AhbMasterDriverBFM (input  bit   hclk,
                               input  logic hreadyout,
                               input  logic hresp,
                               input  logic hexokay
-                              //output logic [NO_OF_SLAVES-1:0] hselx
                              );
 
   import AhbMasterPackage::*;
@@ -32,7 +31,6 @@ interface AhbMasterDriverBFM (input  bit   hclk,
   AhbMasterDriverProxy ahbMasterDriverProxy;
 
   initial begin : MASTER_DRIVER
-   // `uvm_info(name, $sformatf(name), UVM_LOW)
    $display("THE MASTER AGENT ARE  CREATED AS EXPECTED %m");//debug
   end
 
@@ -75,7 +73,6 @@ interface AhbMasterDriverBFM (input  bit   hclk,
     MasterDriverCb.hexcl         <=  dataPacket.hexcl;
     MasterDriverCb.hmaster       <=  dataPacket.hmaster;
     MasterDriverCb.htrans        <=  dataPacket.htrans;
-  // MasterDriverCb.hwstrb        <=  dataPacket.hwstrb[0];
     MasterDriverCb.hwrite        <=  dataPacket.hwrite;
 
     @(MasterDriverCb);
@@ -102,7 +99,6 @@ interface AhbMasterDriverBFM (input  bit   hclk,
       3'b 001 : burst_length = configPacket.undefinedBurstLength;
       default: burst_length = 1;
     endcase
-    $display("INSIDE BURST");//debug
     MasterDriverCb.haddr        <=  current_address;
     MasterDriverCb.hburst       <=  dataPacket.hburst;
     MasterDriverCb.hmastlock    <=  dataPacket.hmastlock;
@@ -112,7 +108,6 @@ interface AhbMasterDriverBFM (input  bit   hclk,
     MasterDriverCb.hexcl        <=  dataPacket.hexcl;
     MasterDriverCb.hmaster      <=  dataPacket.hmaster;
     MasterDriverCb.htrans       <=  2'b10;
-//    MasterDriverCb.hwstrb       <=  dataPacket.hwstrb[0];
     MasterDriverCb.hwrite       <=  dataPacket.hwrite;
   
     @(MasterDriverCb);
@@ -142,7 +137,6 @@ interface AhbMasterDriverBFM (input  bit   hclk,
       MasterDriverCb.hexcl     <=  dataPacket.hexcl;
       MasterDriverCb.hmaster   <=  dataPacket.hmaster;
       MasterDriverCb.htrans    <=  2'b 11;
-//      MasterDriverCb.hwstrb    <=  dataPacket.hwstrb[0];
       MasterDriverCb.hwrite    <=  dataPacket.hwrite;
     
       @(MasterDriverCb); 
@@ -163,14 +157,6 @@ interface AhbMasterDriverBFM (input  bit   hclk,
     return masked_data;
   endfunction
 
-/*  task driveBusyTransfer(inout ahbTransferCharStruct dataPacket, inout logic [ADDR_WIDTH-1:0] current_address);
-    htrans                   <=  2'b01;   // Busy transfer
-    `uvm_info(name, $sformatf("Driving BUSY Transfer at Address: %0h", haddr), UVM_LOW);
-    @(posedge hclk);
-    htrans                   <=  2'b11 ;  
-  endtask
-*/
-
   task driveIdle(input ahbTransferCharStruct dataPacket );
  
     MasterDriverCb.haddr        <=  dataPacket.haddr;
@@ -183,7 +169,6 @@ interface AhbMasterDriverBFM (input  bit   hclk,
     MasterDriverCb.hmaster      <=  dataPacket.hmaster;
     MasterDriverCb.htrans       <=  2'b 00;
     MasterDriverCb.hwstrb       <=  dataPacket.hwstrb[0];
-    //MasterDriverCb.hwrite     <=  1;
     MasterDriverCb.hwrite       <=  dataPacket.hwrite;
 
     @(MasterDriverCb);

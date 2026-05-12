@@ -30,28 +30,14 @@ endfunction : new
 function void AhbMasterMonitorProxy::build_phase(uvm_phase phase);
   super.build_phase(phase);
 
-  /*
-  if(!uvm_config_db #(virtual AhbMasterMonitorBFM)::get(this,"",, ahbMasterMonitorBFM)) begin
-    `uvm_fatal("FATAL_MDP_CANNOT_GET_AHB_MASTER_MONITOR_BFM","cannot get() ahbMasterMonitorBFM");
-  end
-*/
-
 endfunction : build_phase
 
 function void AhbMasterMonitorProxy::end_of_elaboration_phase(uvm_phase phase);
   super.end_of_elaboration_phase(phase);
-  //ahbMasterMonitorBFM.ahbMasterMonitorProxy = this;
 endfunction : end_of_elaboration_phase
 
 task AhbMasterMonitorProxy::run_phase(uvm_phase phase);
   AhbMasterTransaction ahbMasterPacket;
- /* ahbMasterIdAsci.itoa(ahbMasterAgentConfig.ahbMasterMonitorId);
-  ahbBfmField = {"AhbMasterMonitorBFM",ahbMasterIdAsci};
-  
-  if(!uvm_config_db #(virtual AhbMasterMonitorBFM)::get(this,"",ahbBfmField, ahbMasterMonitorBFM)) begin
-    `uvm_fatal("FATAL_MDP_CANNOT_GET_AHB_MASTER_MONITOR_BFM","cannot get() ahbMasterMonitorBFM");
-  end
-*/
 
   `uvm_info(get_type_name(), $sformatf("Inside the master_monitor_proxy"), UVM_LOW);
   ahbMasterPacket = AhbMasterTransaction::type_id::create("ahbMasterPacket");
@@ -65,7 +51,6 @@ task AhbMasterMonitorProxy::run_phase(uvm_phase phase);
 
     AhbMasterConfigConverter :: fromClass(ahbMasterAgentConfig,  structConfigPacket);
     ahbMasterMonitorBFM.sampleData (structDataPacket,  structConfigPacket);
-  //  $display("&&&&values inside master monitor proxy %p&&&",structDataPacket);
      AhbMasterSequenceItemConverter :: toClass(structDataPacket, ahbMasterPacket);
    
     $cast(ahbMasterClonePacket, ahbMasterPacket.clone());

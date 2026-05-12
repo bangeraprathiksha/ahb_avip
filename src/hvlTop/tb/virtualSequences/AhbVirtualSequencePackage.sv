@@ -14,19 +14,14 @@ package AhbVirtualSequencePackage;
 
   `include "AhbVirtualBaseSequence.sv"
   `include "AhbVirtualWriteSequence.sv"
- `include "AhbVirtualIdleSequence.sv"
+  `include "AhbVirtualIdleSequence.sv"
   `include "AhbVirtualReadSequence.sv"
   `include "AhbVirtualSingleWriteSequence.sv"
   `include "AhbVirtualSingleReadSequence.sv"
-  `include "AhbVirtualWriteWithBusySequence.sv"
-  `include "AhbVirtualReadWithBusySequence.sv"
-  `include "AhbVirtualSingleWriteWithWaitStateSequence.sv"
-  `include "AhbVirtualSingleReadWithWaitStateSequence.sv"
-  `include "AhbVirtualWriteWithWaitStateSequence.sv"
-  `include "AhbVirtualReadWithWaitStateSequence.sv"
-  `include "AhbVirtualWriteFollowedByReadSequence.sv"
- //`include "AhbVirtualIdleSequence.sv"
+  `include "AhbVirtualIdleSequence.sv"
+
   `include "AhbVirtualSingleWriteFollowedByReadSequence.sv"
+
   `include "AhbVirtualLength4WriteFollowedByReadSequence.sv"
   `include "AhbVirtualLength8WriteFollowedByReadSequence.sv"
   `include "AhbVirtualLength16WriteFollowedByReadSequence.sv"
@@ -34,7 +29,9 @@ package AhbVirtualSequencePackage;
   `include "AhbVirtualWrap4WriteFollowedByReadSequence.sv"
   `include "AhbVirtualWrap8WriteFollowedByReadSequence.sv"  
   `include "AhbVirtualWrap16WriteFollowedByReadSequence.sv"
-  `include "AhbVirtualHmastlockSequence.sv"
+
+  `include "AhbVirtualHmastlock0Sequence.sv"
+  `include "AhbVirtualHmastlock1Sequence.sv"
 
   `include "AhbVirtualuWriteFollowedByReadSequence.sv"
 endpackage : AhbVirtualSequencePackage

@@ -1,9 +1,14 @@
 AhbSingleWriteFollowedByReadTest.sv
+
 AhbLength4WriteFollowedByReadTest.sv
 AhbLength8WriteFollowedByReadTest.sv
 AhbLength16WriteFollowedByReadTest.sv
+
 AhbWrap4WriteFollowedByReadTest.sv
 AhbWrap8WriteFollowedByReadTest.sv
 AhbWrap16WriteFollowedByReadTest.sv
-AhbuWriteFollowedByReadTest.sv
 
+AhbHmastlock0Test.sv
+AhbHmastlock1Test.sv
+
+AhbuWriteFollowedByReadTest.sv

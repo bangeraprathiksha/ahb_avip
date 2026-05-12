@@ -19,15 +19,9 @@ package AhbTestPackage;
   `include "AhbReadTest.sv"
   `include "AhbSingleWriteTest.sv"
   `include "AhbSingleReadTest.sv"
-  `include "AhbWriteWithBusyTest.sv"
-  `include "AhbReadWithBusyTest.sv"
-  `include "AhbSingleWriteWithWaitStateTest.sv"
-  `include "AhbSingleReadWithWaitStateTest.sv"
-  `include "AhbWriteWithWaitStateTest.sv"
-  `include "AhbReadWithWaitStateTest.sv"
-  `include "AhbWriteFollowedByReadTest.sv"
 
   `include "AhbSingleWriteFollowedByReadTest.sv"
+
   `include "AhbLength4WriteFollowedByReadTest.sv"
   `include "AhbLength8WriteFollowedByReadTest.sv"
   `include "AhbLength16WriteFollowedByReadTest.sv"
@@ -35,7 +29,10 @@ package AhbTestPackage;
   `include "AhbWrap4WriteFollowedByReadTest.sv"
   `include "AhbWrap8WriteFollowedByReadTest.sv"
   `include "AhbWrap16WriteFollowedByReadTest.sv"
-  `include "AhbHmastlockTest.sv"
+
+  `include "AhbHmastlock0Test.sv"
+  `include "AhbHmastlock1Test.sv"
+
   `include "AhbuWriteFollowedByReadTest.sv"
 
 

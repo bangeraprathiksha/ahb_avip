@@ -104,12 +104,10 @@ interface AhbInterconnect(
       end_addr   = start_addr + slave_size;
 
       if (addr >= start_addr && addr < end_addr) begin
-        $display("slave number %0d address %0d",i,addr);//debug
         return i;
       end
 
     end
-    $display("invalid  address %0d",addr);//debug
     return NO_OF_SLAVES;
 
   endfunction
@@ -143,12 +141,9 @@ interface AhbInterconnect(
             end
 
 	    if(master_grant[slaveLoop][masterLoop] == 1'b1) begin
-              $display($time," first master_grant[slaveloop=%0d][masterloop=%0d]=%0d",slaveLoop,masterLoop,master_grant[slaveLoop][masterLoop]);//debug
               previous_owner[slaveLoop] <= current_owner[slaveLoop];  // Store current as previous
               current_owner[slaveLoop]  = masterLoop;                // Update current
               new_c_owner[slaveLoop]    = masterLoop;
-	      $display("[%0t] current_owner[%0d] = %0d",$time,slaveLoop,current_owner[slaveLoop]);//debug
-	      $display("[%0t] new_c_owner[%0d] = %0d",$time,slaveLoop,new_c_owner[slaveLoop]);//debug
               slave_has_owner[slaveLoop] = 1'b1;
             end
     
@@ -165,7 +160,6 @@ interface AhbInterconnect(
 	        read_owner[slaveLoop] = 'x;
 	      end		
 	    end	
-	    $display("[%0t] my_slave = %0d, my_read_owner = %0d",$time,slaveLoop,read_owner[slaveLoop]);//debug
             if(slave_has_owner[slaveLoop]) begin
               owner[slaveLoop] = current_owner[slaveLoop];
               if(master_request[slaveLoop][masterLoop] && (master_htrans[masterLoop] == 2'b00) && !master_hmastlock[masterLoop] && current_owner[slaveLoop] == masterLoop) begin 
@@ -188,8 +182,8 @@ interface AhbInterconnect(
     for(genvar gs=0;gs<NO_OF_SLAVES;gs++) begin
       for(genvar gm=0;gm<NO_OF_MASTERS;gm++) begin
         always_comb begin
-          $info("THE REQ IS %0b for the slave %0d",master_request[gs],gs);//debug
-          $info("THE GRANT IS %0d for the slave %0d addr is %0d for master %0d",master_grant[gs][gm],gs,ahbMasterInterface[gm].haddr,gm);//debug
+          //$info("THE REQ IS %0b for the slave %0d",master_request[gs],gs);//debug
+          //$info("THE GRANT IS %0d for the slave %0d addr is %0d for master %0d",master_grant[gs][gm],gs,ahbMasterInterface[gm].haddr,gm);//debug
         end
       end
     end
@@ -219,7 +213,6 @@ interface AhbInterconnect(
         master_grant[s] = 'x;
         locked_present = 0;
         for(int i=0;i<NO_OF_MASTERS;i++)begin
-	  $display("[%0t] master_request[%0d][%0d] = %0d , master_hmastlock[%0d] == %0d",$time, s,i,master_request[s][i], i,master_hmastlock[i]);
           if(master_request[s][i])begin
             if(master_hmastlock[i]==1) begin
               locked_present=1;
@@ -228,7 +221,6 @@ interface AhbInterconnect(
           end
         end
         can_accept =  slave_hreadyout[s];
-        $display("check locked_present = %0d , can_accept=%0d slave_data_phase[s].valid = %0d  slave_hreadyout[s]=%0d",locked_present,can_accept,slave_data_phase[s].valid,slave_hreadyout[s]);//debug
         if(locked_present==1 &&  can_accept==1)begin 
 	  integer master_idx;
           master_idx = 'bx;
@@ -245,7 +237,6 @@ interface AhbInterconnect(
             end
           end 
             if (master_request[s][master_idx] && master_hmastlock[master_idx]==1) begin
-              $display($time," 1st if block master_request[%0d][%0d] masterlock=%0d",s,master_idx,master_idx);//debug
               master_grant[s][master_idx] = 1'b1;
               slave_data_phase[s].haddr        <=   master_haddr[master_idx];
               slave_data_phase[s].hsize        <=   master_hsize[master_idx];
@@ -258,17 +249,12 @@ interface AhbInterconnect(
               slave_data_phase[s].master_id    <=   master_idx;
               slave_data_phase[s].valid        <=   1'b1;
 
-              $display($time," 1st block grant %0d",master_grant[s][master_idx]);//debug
-              
-           
             end
          end 
         else if(can_accept == 1 && master_htrans[current_owner[s]] == 2'b 11 && master_request[s][current_owner[s]] == 1 )begin
-          $display($time ," 2nd else if block can_accept=%0d htrans=%0d slave_has_owner=%d",can_accept,master_htrans[current_owner[s]],slave_has_owner[s]);//debug
           master_grant[s]                   ='0;
           master_grant[s][current_owner[s]] =1;
           slave_data_phase[s].haddr         <= master_haddr[current_owner[s]];
-	  $strobe("[%0t] 2nd  slave_data_phase.[%0d].haddr = %0d",$time,s,slave_data_phase[s].haddr);//debug
           slave_data_phase[s].hsize         <=   master_hsize[current_owner[s]];
           slave_data_phase[s].htrans        <=   master_htrans[current_owner[s]];
           slave_data_phase[s].hwrite        <=   master_hwrite[current_owner[s]];
@@ -278,23 +264,16 @@ interface AhbInterconnect(
           slave_data_phase[s].target_slave  <=   s;
           slave_data_phase[s].master_id     <=   current_owner[s];
           slave_data_phase[s].valid         <=   1'b1;
-          $display($time ," 2nd blk grant %0d alsve=%0d",master_grant[s][current_owner[s]],s);//debug
         end
         else if (can_accept) begin
-          $display($time ," 3rd block can accept=%0d slave=%0d",can_accept,s);//debug
-          $display("slave_has_owner = %0d slave = %0d ",slave_has_owner[s],s);//debug
           for (int i = 0; i < NO_OF_MASTERS; i++) begin
             int m;
             m = (rr_pointer[s] + i) % NO_OF_MASTERS;
 
             if (master_request[s][m] ) begin
-              $display("dead case s:%d | m:%d",s,m);//debug
-              $display($time," inside 3rd block master_request[s=%0d][m= %0d] htrans=%0d",s,m,master_htrans[m]);//debug
               master_grant[s][m]               =  1'b1;
-              $display($time," 3rd block grant %0d",master_grant[s][m]);//debug
               last_request[s]                  =   m;
               slave_data_phase[s].haddr        <=   master_haddr[m];
-              $strobe("[%0t] 3rd  slave_data_phase.[%0d].haddr = %0d",$time,s,slave_data_phase[s].haddr);//debug
               slave_data_phase[s].hsize        <=   master_hsize[m];
               slave_data_phase[s].htrans       <=   master_htrans[m];
               slave_data_phase[s].hwrite       <=   master_hwrite[m];
@@ -343,7 +322,6 @@ interface AhbInterconnect(
 
           if (push_req && master_count[m] < 2) begin
             master_pipeline[m][master_wr_ptr[m]].haddr        <=  master_haddr[m];
-	    $display("[%0t] master_pipeline[%0d][master_wr_ptr[%0d]].haddr = %0d", $time,m,m,master_pipeline[m][master_wr_ptr[m]].haddr);//debug
             master_pipeline[m][master_wr_ptr[m]].hsize        <=  master_hsize[m];
             master_pipeline[m][master_wr_ptr[m]].htrans       <=  master_htrans[m];
             master_pipeline[m][master_wr_ptr[m]].hwrite       <=  master_hwrite[m];
@@ -397,7 +375,6 @@ interface AhbInterconnect(
         for(int s = 0;s < NO_OF_SLAVES;s++)
           if( m == read_owner[s])begin
             ahbMasterInterface[m].hrdata = slave_hrdata[s];
-	    $display(" time = %0t, master = %0d, slave = %0d,  read_owner = %0d",$time,m,s,read_owner[s]);//debug
             break;
           end
       end
@@ -415,20 +392,14 @@ interface AhbInterconnect(
         end 
         else begin
           new_data_phase_starting <= |master_grant[s];
-          $display("ENTERED THIS BLOCK @%0t",$time());//debug
           if (|master_grant[s]) begin
             for (int m = 0; m < NO_OF_MASTERS; m++) begin
               if (master_grant[s][m] == 1) begin
-                //slave_hwdata_stable[s]         =  master_hwdata[current_owner[s]];
                 slave_hwdata_stable[s]           =  master_hwdata[new_c_owner[s]];
                 slave_hwstrb_stable[s]           =  master_hwstrb[new_c_owner[s]];
-                $display("[%0t] slave_hwdata_stable[%0d] = %0h, slave_hwstrb_stable[%0d] = %0d",$time,s,slave_hwdata_stable[s],s,slave_hwstrb_stable[s]);//debug
                 break;
               end
             end
-          end
-          else if (slave_data_phase[s].valid && slave_hreadyout[s]) begin
-           // slave_data_phase[s].valid <= 1'b0;
           end
         end
       end
@@ -440,9 +411,7 @@ interface AhbInterconnect(
       always_comb begin
         ahbSlaveInterface[s].hwdata     =  slave_hwdata_stable[s];
         ahbSlaveInterface[s].hwstrb     =  slave_hwstrb_stable[s];
-        $display(" 1st hwdata = %0h",ahbSlaveInterface[s].hwdata);//debug
         ahbSlaveInterface[s].haddr      =  slave_data_phase[s].haddr;
-	$display("[%0t] my_hwdata = %0h ahbSlaveInterface[%0d].haddr = %0d",$time,ahbSlaveInterface[s].hwdata,s,ahbSlaveInterface[s].haddr);//debug
         ahbSlaveInterface[s].hsize      =  slave_data_phase[s].hsize;
         ahbSlaveInterface[s].htrans     =  slave_data_phase[s].htrans;
         ahbSlaveInterface[s].hwrite     =  slave_data_phase[s].hwrite;
@@ -451,7 +420,6 @@ interface AhbInterconnect(
         ahbSlaveInterface[s].hmastlock  =  slave_data_phase[s].hmastlock;
         ahbSlaveInterface[s].hselx      =  1'b1;
         ahbSlaveInterface[s].hwdata     = slave_hwdata_stable[s];
-	$display(" 2nd hwdata = %0h",ahbSlaveInterface[s].hwdata);//debug
       end
     end
   endgenerate
@@ -470,7 +438,6 @@ interface AhbInterconnect(
         for(int s=0;s <NO_OF_SLAVES;s++)
           if(m == new_c_owner[s])begin
             oldest_is_ready = slave_hreadyout[s];
-            $display("%0t check slave_hreadyout[%0d] = %0d",$time, s,slave_hreadyout[s]);//debug
             break;
            end
         pipeline_has_space = (master_count[m] < 2);
@@ -478,16 +445,14 @@ interface AhbInterconnect(
         can_accept_new_transfer = 1'b0; 
         for (int s = 0; s < NO_OF_SLAVES; s++) begin
           if (master_grant[s][m]) begin
-            $display("last grant s=%0d m=%0d g==%0d",s,m,master_grant[s][m]);//debug
             can_accept_new_transfer = 1'b1;
             break;
           end
         end
 
         ahbMasterInterface[m].hready = can_accept_new_transfer && oldest_is_ready;
-        $display($time, "else hready %0d master [%0d] can_accept=%0d oldest_is_ready=%0d",ahbMasterInterface[m].hready,m,can_accept_new_transfer,oldest_is_ready);//debug
       end
     end
   endgenerate
 
-endinterface                         
+endinterface                                  

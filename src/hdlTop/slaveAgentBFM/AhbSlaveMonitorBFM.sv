@@ -72,7 +72,6 @@ interface AhbSlaveMonitorBFM (input  bit   hclk,
 
      ahbDataPacket.hselx   = prev_hselx;
      ahbDataPacket.haddr   = prev_haddr;
-     $display("ishika %0t haddr = %0h",$time,ahbDataPacket.haddr);//debug
      ahbDataPacket.hburst  = ahbBurstEnum'(prev_hburst);
      ahbDataPacket.hwrite  = ahbOperationEnum'(prev_hwrite);
      ahbDataPacket.hsize   = ahbHsizeEnum'(prev_hsize);
@@ -107,8 +106,6 @@ interface AhbSlaveMonitorBFM (input  bit   hclk,
      prev_hnonsec = SlaveMonitorCb.hnonsec;
      prev_hprot   = SlaveMonitorCb.hprot;
  
-     $display("[%0t] from slave  monitor = haddr=%0d, hwdata = %0h, hrdata = %0h, hwstrb = %p ",$time,prev_haddr,SlaveMonitorCb.hwdata,SlaveMonitorCb.hrdata,SlaveMonitorCb.hwstrb);//debug
-
   endtask : slaveSampleData
 
 endinterface : AhbSlaveMonitorBFM

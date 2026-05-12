@@ -31,33 +31,15 @@ endfunction : new
 
 function void AhbSlaveDriverProxy::build_phase(uvm_phase phase);
   super.build_phase(phase);
-/*  
-  if(!uvm_config_db #(virtual AhbSlaveDriverBFM)::get(this,"",ahbSlaveConfig.ahbBfmField, ahbSlaveDriverBFM)) 
-    begin
-    `uvm_fatal("FATAL SDP CANNOT GET SLAVE DRIVER BFM","cannot get() ahbSlaveDriverBFM");
-  end
- */
 endfunction : build_phase
 
 
 function void AhbSlaveDriverProxy::end_of_elaboration_phase(uvm_phase phase);
   super.end_of_elaboration_phase(phase);
-  //ahbSlaveDriverBFM.ahbSlaveDriverProxy = this;
 endfunction : end_of_elaboration_phase
 
 task AhbSlaveDriverProxy::run_phase(uvm_phase phase);
   `uvm_info(get_type_name(), $sformatf(" BEFORERESET \n "), UVM_NONE);
-/*
-  ahbSlaveIdAsci.itoa(ahbSlaveAgentConfig.ahbSlaveDriverId);
-  ahbBfmField = {"AhbSlaveDriverBFM" ,ahbSlaveIdAsci};
-
-  $display("\n\nTHE SLAVE BFM FIELD IS %s \n \n",ahbBfmField ); //debug
-
-  if(!uvm_config_db #(virtual AhbSlaveDriverBFM)::get(this,"",ahbBfmField, ahbSlaveDriverBFM))
-    begin
-    `uvm_fatal("FATAL SDP CANNOT GET SLAVE DRIVER BFM","cannot get() ahbSlaveDriverBFM");
-  end
-*/
   ahbSlaveDriverBFM.waitForResetn();
   
   forever begin
@@ -94,19 +76,14 @@ task AhbSlaveDriverProxy::run_phase(uvm_phase phase);
       join_none  
       AhbSlaveSequenceItemConverter::toClass(structPacket, req); 
     end
-    $display("(((((((((((((((SENT ACK)))))))))))))))");//debug
     seq_item_port.item_done();
   end
 
 endtask : run_phase
 
 task AhbSlaveDriverProxy::taskWrite(inout ahbTransferCharStruct structPacket);
-  `uvm_info("DEBUG_NA", $sformatf("taskWrite"), UVM_HIGH); 
   
   for(int i=0; i<(DATA_WIDTH/8); i++) begin
-    `uvm_info("DEBUG_NA", $sformatf("task_write inside for loop :: %0d", i), UVM_HIGH);
-    `uvm_info("DEBUG_NA", $sformatf("task_write inside for loop hwstrb = %0b", structPacket.hwstrb[i]), UVM_HIGH);
-    
     if(structPacket.hwstrb[i] == 1) begin
       ahbSlaveAgentConfig.slaveMemoryTask(structPacket.haddr+i,structPacket.hwdata[8*i+7 -: 8]);
       `uvm_info("DEBUG_NA", $sformatf("task_write inside for loop data = %0h",ahbSlaveAgentConfig.slaveMemory[structPacket.haddr+i]), UVM_HIGH);
@@ -116,14 +93,11 @@ endtask : taskWrite
 
 task AhbSlaveDriverProxy::taskRead(inout ahbTransferCharStruct structPacket);
   bit memoryExist;
-
-  `uvm_info("DEBUG_NA", $sformatf("task_read"), UVM_HIGH);
-  
+ 
   for(int i=0; i<(DATA_WIDTH/8); i++) begin
     if(ahbSlaveAgentConfig.slaveMemory.exists(structPacket.haddr)) begin
       structPacket.hrdata[8*i+7 -: 8] = ahbSlaveAgentConfig.slaveMemory[structPacket.haddr + i];
       memoryExist = 1;
-       //$display("mem exist=%0d",memoryExist);
 
     end
   end
@@ -131,7 +105,6 @@ task AhbSlaveDriverProxy::taskRead(inout ahbTransferCharStruct structPacket);
     `uvm_error(get_type_name(), $sformatf("Selected address has no data"));
       structPacket.hresp  = ERROR;
       structPacket.hrdata  = 'h0;
-       //$display("mem exist=%0d",memoryExist);
   end
 endtask : taskRead
 
@@ -143,7 +116,6 @@ endfunction  : connect_phase
 
 function void AhbSlaveDriverProxy :: setConfig( AhbSlaveAgentConfig ahbSlaveAgentConfig);
    this.ahbSlaveAgentConfig = ahbSlaveAgentConfig;
-   $display("IN THE SLAVE PROXY THE  %0d",this.ahbSlaveAgentConfig.noOfWaitStates);//debug
 endfunction : setConfig    
 
 `endif

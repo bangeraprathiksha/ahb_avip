@@ -29,34 +29,16 @@ endfunction : new
 
 function void AhbSlaveMonitorProxy::build_phase(uvm_phase phase);
   super.build_phase(phase);
-/*   
-  if(!uvm_config_db #(virtual AhbSlaveMonitorBFM)::get(this,"","AhbSlaveMonitorBFM", ahbSlaveMonitorBFM)) begin
-    `uvm_fatal("FATAL MDP CANNOT GET AHBSLAVE MONITOR BFM","cannot get() ahbSlaveMonitorBFM");
-  end
- */    
 endfunction : build_phase
 
 function void AhbSlaveMonitorProxy::end_of_elaboration_phase(uvm_phase phase);
  super.end_of_elaboration_phase(phase);
-  //ahbSlaveMonitorBFM.ahbSlaveMonitorProxy = this;
 endfunction : end_of_elaboration_phase
 
 task AhbSlaveMonitorProxy::run_phase(uvm_phase phase);
       
   AhbSlaveTransaction ahbSlavePacket;
-  /*
-  ahbSlaveIdAsci.itoa(ahbSlaveAgentConfig.ahbSlaveMonitorId);
-  
-  ahbBfmField = {"AhbSlaveMonitorBFM" , ahbSlaveIdAsci};
-  
-  
-  if(!uvm_config_db #(virtual AhbSlaveMonitorBFM)::get(this,"",ahbBfmField, ahbSlaveMonitorBFM)) begin
-    `uvm_fatal("FATAL MDP CANNOT GET AHBSLAVE MONITOR BFM","cannot get() ahbSlaveMonitorBFM");
-  end
-*/
   ahbSlavePacket = AhbSlaveTransaction::type_id::create("slave Packet");
-
-//  ahbSlaveMonitorBFM.waitForResetn();
 
   forever begin
     ahbTransferCharStruct structDataPacket;
@@ -66,7 +48,6 @@ task AhbSlaveMonitorProxy::run_phase(uvm_phase phase);
     AhbSlaveConfigConverter :: fromClass (ahbSlaveAgentConfig, structConfigPacket);
     ahbSlaveMonitorBFM.slaveSampleData (structDataPacket, structConfigPacket);
 
-    //$display("&&&&values inside monitor proxy %p&&&",structDataPacket);
     AhbSlaveSequenceItemConverter :: toClass (structDataPacket, ahbSlavePacket);
 
 

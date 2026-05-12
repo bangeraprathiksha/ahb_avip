@@ -29,40 +29,20 @@ endfunction : new
 
 function void AhbMasterDriverProxy::build_phase(uvm_phase phase);
   super.build_phase(phase);
- /* 
-  if(!uvm_config_db #(virtual AhbMasterDriverBFM)::get(this,"",ahbMasterConfig.ahbBfmField, ahbMasterDriverBFM)) begin
-    `uvm_fatal("FATAL_MDP_CANNOT_GET_APB_MASTER_DRIVER_BFM","cannot get() ahbMasterDriverBFM");
-  end
-*/
 endfunction : build_phase
 
 
 function void AhbMasterDriverProxy::end_of_elaboration_phase(uvm_phase phase);
   super.end_of_elaboration_phase(phase);
-
-  //ahbMasterDriverBFM.ahbMasterDriverProxy = this;
-
 endfunction : end_of_elaboration_phase
 
 task AhbMasterDriverProxy::run_phase(uvm_phase phase);
-/*
-  ahbMasterIdAsci.itoa( ahbMasterAgentConfig.ahbMasterDriverId);
-
-  ahbBfmField = {"AhbMasterDriverBFM" , ahbMasterIdAsci};
-
-  if(!uvm_config_db #(virtual AhbMasterDriverBFM)::get(this,"" ,ahbBfmField  ,  ahbMasterDriverBFM)) begin
-    `uvm_fatal("FATAL_MDP_CANNOT_GET_APB_MASTER_DRIVER_BFM","cannot get() ahbMasterDriverBFM");
-  end
- */ 
- 
    ahbMasterDriverBFM.waitForResetn();
 
   forever begin
 
     ahbTransferCharStruct dataPacket;
     ahbTransferConfigStruct configPacket;
-    $display("\n \n getting next one \n \n");
-    $display("....I AM HERE..... %0t ",$time);
     seq_item_port.get_next_item(req);
 
     `uvm_info(get_type_name(), $sformatf("REQ-MASTERTX \n %s",req.sprint),UVM_LOW);
